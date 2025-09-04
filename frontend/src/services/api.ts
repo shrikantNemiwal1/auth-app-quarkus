@@ -1,5 +1,5 @@
 // src/services/api.ts
-const BASE_URL = "http://localhost:3000/api";
+const BASE_URL = "/api";
 
 async function apiCall(url: string, options: RequestInit = {}) {
   const response = await fetch(url, {
