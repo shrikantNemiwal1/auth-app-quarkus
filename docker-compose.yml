@@ -66,7 +66,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: frontend/Dockerfile
+      dockerfile: Dockerfile
       args:
         # Frontend calls same-origin /api; Nginx should proxy /api -> node-proxy:3000
         - REACT_APP_API_URL=/api
