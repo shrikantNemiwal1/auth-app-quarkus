@@ -30,7 +30,8 @@ app.use(
   })
 );
 
-const QUARKUS_URL = "http://127.0.0.1:8080";
+const QUARKUS_URL =
+  process.env.QUARKUS_URL || "http://quarkus-service:8080/api";
 
 // Middleware to refresh session on activity
 const refreshSession = (req, res, next) => {
