@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { useAuth } from "./context/AuthContext";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Loading from "./components/common/Loading";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import DashboardPage from "./pages/DashboardPage";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+const App = () => {
+  const [route, setRoute] = useState(() => {
+    if (window.location.pathname === "/verify" && window.location.search.includes("token=")) {
+      return "/verify";
+    }
+    return "/login";
+  });
+  const { isAuthenticated, isLoading } = useAuth();
+
+  const navigate = (path: string) => {
+    setRoute(path);
+  };
+
+  useEffect(() => {
+    if (!isLoading) {
+      const isAuthPage = route === "/login" || route === "/signup";
+      if (isAuthenticated && isAuthPage) {
+        navigate("/dashboard");
+      }
+      if (!isAuthenticated && route === "/dashboard") {
+        navigate("/login");
+      }
+    }
+  }, [route, isAuthenticated, isLoading]);
+
+  if (isLoading) return <Loading />;
+
+  const renderPage = () => {
+    if (route.startsWith("/dashboard")) {
+      return isAuthenticated ? <DashboardPage navigate={navigate} /> : <LoginPage navigate={navigate} />;
+    }
+    switch (route) {
+      case "/signup":
+        return <SignupPage navigate={navigate} />;
+      case "/verify":
+        return <EmailVerificationPage navigate={navigate} />;
+      case "/login":
+      default:
+        return <LoginPage navigate={navigate} />;
+    }
+  };
+
+  return renderPage();
+};
+
+export default function ProvidedApp() {
+  return <App />;
 }
-
-export default App
