@@ -47,38 +47,4 @@ public class AuthResource {
                     .build();
         }
     }
-
-    // Optional: Add endpoint for Node.js to validate tokens
-    @POST
-    @Path("/validate")
-    public Response validateToken(@HeaderParam("Authorization") String authHeader) {
-        try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return Response.status(Response.Status.UNAUTHORIZED)
-                        .entity(ApiResponse.builder()
-                                .success(false)
-                                .message("Invalid authorization header")
-                                .build())
-                        .build();
-            }
-
-            String token = authHeader.substring(7);
-            boolean isValid = authService.validateInternalToken(token);
-
-            return Response.ok(ApiResponse.builder()
-                            .success(isValid)
-                            .message(isValid ? "Token valid" : "Token invalid")
-                            .build())
-                    .build();
-        } catch (Exception e) {
-            log.errorf(e, "Error validating token");
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(ApiResponse.builder()
-                            .success(false)
-                            .message("Token validation failed")
-                            .build())
-                    .build();
-        }
-    }
 }
-

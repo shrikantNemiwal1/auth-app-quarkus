@@ -8,7 +8,7 @@ const app = express();
 // CORS for React frontend
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:4173",
     credentials: true,
   })
 );
