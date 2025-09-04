@@ -1,34 +1,27 @@
 # Build stage
-FROM node:18-alpine as build
-
+FROM node:18-alpine AS build
 WORKDIR /app
 
-# Copy package files
+# Install deps
 COPY package*.json ./
-
-# Install dependencies
 RUN npm ci
 
-# Copy source code
+# Copy source and build
 COPY . .
-
-# Build the app
 ARG REACT_APP_API_URL
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
+# Vite build outputs to /app/dist by default
 RUN npm run build
 
-# Production stage
+# Runtime stage
 FROM nginx:alpine
-
-# Install curl for health checks
 RUN apk add --no-cache curl
 
-# Copy built app
-COPY --from=build /app/build /usr/share/nginx/html
+# Copy Vite build output
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy nginx config
+# Nginx config within same context
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
