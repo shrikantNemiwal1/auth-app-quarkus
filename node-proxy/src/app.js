@@ -157,6 +157,10 @@ app.get("/api/dashboard", refreshSession, (req, res) => {
   });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Node.js server running on port ${PORT}`);
