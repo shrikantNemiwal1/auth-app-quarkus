@@ -50,7 +50,7 @@ services:
       context: ./node-proxy
     container_name: auth-node
     environment:
-      QUARKUS_URL: http://quarkus-service:8080/api
+      QUARKUS_URL: http://quarkus-service:8080
       SESSION_SECRET: ${SESSION_SECRET:?set-a-strong-secret}
       NODE_ENV: production
       NODE_OPTIONS: --max-old-space-size=128
