@@ -5,50 +5,81 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import org.acme.entity.EmailVerificationToken;
 import org.acme.entity.User;
+import org.acme.exceptions.InvalidTokenException;
+import org.acme.exceptions.UserAlreadyExistsException;
+import org.jboss.logging.Logger;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
 public class UserService {
 
+    private static final Logger log = Logger.getLogger(UserService.class);
+
     @Transactional
-    public User registerUser(String email, String password) {
-        if (User.find("email", email).firstResult() != null) {
-            throw new IllegalArgumentException("Email already registered");
+    public EmailVerificationToken registerUser(String email, String password) {
+        log.infof("Attempting to register user with email: %s", email);
+
+        if (User.existsByEmail(email)) {
+            log.warnf("Registration failed - email already exists: %s", email);
+            throw new UserAlreadyExistsException("Email already registered");
         }
 
-        User user = new User();
-        user.email = email;
-        user.passwordHash = BcryptUtil.bcryptHash(password);
-        user.persist();
+        try {
+            User user = User.builder()
+                    .email(email.toLowerCase().trim())
+                    .passwordHash(BcryptUtil.bcryptHash(password))
+                    .build();
+            user.persist();
 
-        // Create verification token
-        EmailVerificationToken token = new EmailVerificationToken();
-        token.token = UUID.randomUUID().toString();
-        token.user = user;
-        token.expiresAt = Instant.now().plusSeconds(24*60*60);
-        token.persist();
+            EmailVerificationToken token = EmailVerificationToken.builder()
+                    .token(UUID.randomUUID().toString())
+                    .user(user)
+                    .expiresAt(Instant.now().plusSeconds(24 * 60 * 60)) // 24 hours
+                    .build();
+            token.persist();
 
-        return user;
+            log.infof("User registered successfully: %s", email);
+            return token;
+        } catch (Exception e) {
+            log.errorf(e, "Error registering user: %s", email);
+            throw new RuntimeException("Failed to register user", e);
+        }
     }
 
     @Transactional
-    public boolean verifyEmail(String token) {
-        EmailVerificationToken evt = EmailVerificationToken.find("token", token).firstResult();
-        if (evt == null || evt.expiresAt.isBefore(Instant.now())) {
-            return false;
+    public void verifyEmail(String tokenString) {
+        log.infof("Attempting to verify email with token: %s", tokenString);
+
+        if (tokenString == null || tokenString.trim().isEmpty()) {
+            throw new InvalidTokenException("Token is required");
         }
 
-        evt.user.emailVerified = true;
-        evt.user.persist();
-        evt.delete();
-        return true;
+        EmailVerificationToken token = EmailVerificationToken.findByToken(tokenString)
+                .orElseThrow(() -> new InvalidTokenException("Invalid verification token"));
+
+        if (token.isExpired()) {
+            log.warnf("Token expired for user: %s", token.getUser().getEmail());
+            throw new InvalidTokenException("Verification token has expired");
+        }
+
+        try {
+            token.getUser().setEmailVerified(true);
+            token.getUser().persist();
+            token.delete();
+            log.infof("Email verified successfully for user: %s", token.getUser().getEmail());
+        } catch (Exception e) {
+            log.errorf(e, "Error verifying email for token: %s", tokenString);
+            throw new RuntimeException("Failed to verify email", e);
+        }
     }
 
     public Optional<User> findByEmail(String email) {
-        return Optional.ofNullable(User.find("email", email).firstResult());
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return User.findByEmail(email.toLowerCase().trim());
     }
 }

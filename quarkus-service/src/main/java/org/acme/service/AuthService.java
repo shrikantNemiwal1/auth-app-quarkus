@@ -1,39 +1,46 @@
 package org.acme.service;
 
 import io.quarkus.elytron.security.common.BcryptUtil;
-import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.acme.dto.LoginResponse;
 import org.acme.entity.User;
+import org.acme.exceptions.AuthenticationException;
+import org.jboss.logging.Logger;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 @ApplicationScoped
 public class AuthService {
 
+    private static final Logger log = Logger.getLogger(AuthService.class);
+
     @Inject
     UserService userService;
 
-    public Optional<String> login(String email, String password) {
-        Optional<User> maybeUser = userService.findByEmail(email);
-        if (maybeUser.isEmpty()) return Optional.empty();
+    public LoginResponse authenticate(String email, String password) {
+        log.infof("Authentication attempt for email: %s", email);
 
-        User user = maybeUser.get();
-        if (!BcryptUtil.matches(password, user.passwordHash)) {
-            return Optional.empty();
+        Optional<User> maybeUser = userService.findByEmail(email);
+        if (maybeUser.isEmpty()) {
+            throw new AuthenticationException("Invalid email or password");
         }
 
-        Set<String> roles = new HashSet<>();
-        roles.add("User");
+        User user = maybeUser.get();
+        if (!BcryptUtil.matches(password, user.getPasswordHash())) {
+            throw new AuthenticationException("Invalid email or password");
+        }
 
-        String token = Jwt.issuer("example-app")
-                .subject(user.email)
-                .groups(roles)
-                .claim("emailVerified", user.emailVerified)
-                .sign();
+        String message = user.isEmailVerified()
+                ? "Your email is validated. You can access the portal"
+                : "You need to validate your email to access the portal";
 
-        return Optional.of(token);
+        return LoginResponse.builder()
+                .token("") // Empty token since Node.js handles sessions
+                .userId(user.getId().toString())
+                .emailVerified(user.isEmailVerified())
+                .message(message)
+                .build();
     }
 }
+

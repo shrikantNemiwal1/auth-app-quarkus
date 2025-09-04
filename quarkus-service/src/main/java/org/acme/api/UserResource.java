@@ -2,15 +2,18 @@ package org.acme.api;
 
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.acme.dto.ApiResponse;
 import org.acme.dto.SignupRequest;
 import org.acme.dto.VerifyRequest;
+import org.acme.entity.EmailVerificationToken;
+import org.acme.exceptions.InvalidTokenException;
+import org.acme.exceptions.UserAlreadyExistsException;
+import org.acme.service.EmailService;
 import org.acme.service.UserService;
+import org.jboss.logging.Logger;
 
 import java.util.Map;
 
@@ -19,21 +22,69 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 public class UserResource {
 
+    private static final Logger log = Logger.getLogger(UserResource.class);
+
     @Inject
     UserService userService;
 
-    @POST
-    public Response signup(@Valid SignupRequest req) {
-        userService.registerUser(req.email(), req.password());
-        return Response.status(Response.Status.CREATED).entity(Map.of(
-                "message", "User created. Please check your email for verification."
-        )).build();
-    }
+    @Inject
+    EmailService emailService;
 
     @POST
+    public Response signup(@Valid SignupRequest request) {
+        try {
+            EmailVerificationToken token = userService.registerUser(request.getEmail(), request.getPassword());
+            emailService.sendVerificationEmail(request.getEmail(), token.getToken());
+
+            return Response.status(Response.Status.CREATED)
+                    .entity(ApiResponse.builder()
+                            .success(true)
+                            .message("User created. Please check your email for verification.")
+                            .build())
+                    .build();
+        } catch (UserAlreadyExistsException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            log.errorf(e, "Error during signup");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(ApiResponse.builder()
+                            .success(false)
+                            .message("Failed to create user")
+                            .build())
+                    .build();
+        }
+    }
+
+    @GET
     @Path("/verify")
-    public Response verify(@Valid VerifyRequest req) {
-        userService.verifyEmail(req.token());
-        return Response.ok(Map.of("message", "Email verified successfully.")).build();
+    public Response verify(@QueryParam("token") String token) {
+        try {
+            userService.verifyEmail(token);
+            return Response.ok(ApiResponse.builder()
+                            .success(true)
+                            .message("Email verified successfully.")
+                            .build())
+                    .build();
+        } catch (InvalidTokenException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(ApiResponse.builder()
+                            .success(false)
+                            .message(e.getMessage())
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            log.errorf(e, "Error during email verification");
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(ApiResponse.builder()
+                            .success(false)
+                            .message("Failed to verify email")
+                            .build())
+                    .build();
+        }
     }
 }
