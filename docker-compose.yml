@@ -60,7 +60,6 @@ services:
     restart: unless-stopped
     networks:
       - app-net
-    # No ports published in prod
 
   # React + Nginx (public)
   frontend:
@@ -73,8 +72,9 @@ services:
     container_name: auth-frontend
     ports:
       - "80:80"
-      # If you terminate TLS in-container, also publish:
-      # - "443:443"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       node-proxy:
         condition: service_started
