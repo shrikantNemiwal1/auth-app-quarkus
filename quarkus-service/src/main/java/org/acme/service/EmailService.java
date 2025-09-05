@@ -15,7 +15,7 @@ public class EmailService {
     @Inject
     Mailer mailer;
 
-    @ConfigProperty(name = "app.frontend-url", defaultValue = "http://localhost:3000")
+    @ConfigProperty(name = "app.frontend-url", defaultValue = "https://3.109.185.40")
     String frontendUrl;
 
     public void sendVerificationEmail(String email, String token) {
@@ -27,8 +27,9 @@ public class EmailService {
             mailer.send(
                     Mail.withText(email,
                             "Verify your email",
-                            String.format("Hi,\n\nClick this link to verify your email:\n%s\n\nThis link will expire in 24 hours.\n\nThanks!", link))
-            );
+                            String.format(
+                                    "Hi,\n\nClick this link to verify your email:\n%s\n\nThis link will expire in 24 hours.\n\nThanks!",
+                                    link)));
 
             log.infof("Verification email sent successfully to: %s", email);
         } catch (Exception e) {
