@@ -1,5 +1,7 @@
 # Auth App Quarkus Solution
 
+## Live URL : https://3.109.185.40/
+
 ## Project Overview
 
 This project implements a secure user signup and login portal as per the following assignment:
