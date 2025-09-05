@@ -10,7 +10,6 @@ import lombok.*;
 @Getter
 public class SignupRequest {
 
-    // Getters and Setters
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     @JsonProperty("email")
@@ -21,14 +20,11 @@ public class SignupRequest {
     @JsonProperty("password")
     private String password;
 
-    // Default constructor (required for JSON deserialization)
     public SignupRequest() {
     }
 
-    // Constructor with parameters
     public SignupRequest(String email, String password) {
         this.email = email;
         this.password = password;
     }
-
 }

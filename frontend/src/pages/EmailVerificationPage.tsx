@@ -28,13 +28,12 @@ const EmailVerificationPage = ({
 
       try {
         await verifyEmail(token);
-        await checkSession(); // ✅ refresh session so user is updated
+        await checkSession();
 
         setStatus("success");
         setMessage("Email successfully verified! Redirecting...");
 
-        // ✅ Clean URL and redirect
-        window.history.replaceState({}, "", "/verify"); // removes ?token=
+        window.history.replaceState({}, "", "/verify");
         setTimeout(() => navigate("/dashboard"), 1500);
       } catch (err: any) {
         setStatus("error");

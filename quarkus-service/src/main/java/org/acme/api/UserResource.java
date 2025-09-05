@@ -7,15 +7,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.acme.dto.ApiResponse;
 import org.acme.dto.SignupRequest;
-import org.acme.dto.VerifyRequest;
 import org.acme.entity.EmailVerificationToken;
 import org.acme.exceptions.InvalidTokenException;
 import org.acme.exceptions.UserAlreadyExistsException;
 import org.acme.service.EmailService;
 import org.acme.service.UserService;
 import org.jboss.logging.Logger;
-
-import java.util.Map;
 
 @Path("/users")
 @Consumes(MediaType.APPLICATION_JSON)

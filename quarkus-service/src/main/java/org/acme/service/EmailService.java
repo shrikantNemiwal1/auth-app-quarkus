@@ -15,7 +15,6 @@ public class EmailService {
     @Inject
     Mailer mailer;
 
-    // Changed to point to Node.js server instead of Quarkus directly
     @ConfigProperty(name = "app.frontend-url", defaultValue = "http://localhost:3000")
     String frontendUrl;
 
@@ -23,7 +22,6 @@ public class EmailService {
         log.infof("Sending verification email to: %s", email);
 
         try {
-            // Now points to Node.js server which will proxy to Quarkus
             String link = frontendUrl + "/verify?token=" + token;
 
             mailer.send(

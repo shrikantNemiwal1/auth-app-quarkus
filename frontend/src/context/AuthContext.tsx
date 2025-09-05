@@ -1,4 +1,3 @@
-// src/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "../services/api";
 
@@ -45,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const sessionUser = await api.getSession();
       setUser(sessionUser);
     } catch (err: any) {
-      // If it's 401, treat as "not logged in" instead of looping
+      console.log(err);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -61,7 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await checkSession();
   };
 
-  // Run on mount + every 60s
   useEffect(() => {
     checkSession();
     const interval = setInterval(checkSession, 60000);

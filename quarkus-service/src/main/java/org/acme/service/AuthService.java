@@ -36,7 +36,7 @@ public class AuthService {
                 : "You need to validate your email to access the portal";
 
         return LoginResponse.builder()
-                .token("") // Empty token since Node.js handles sessions
+                .token("")
                 .userId(user.getId().toString())
                 .emailVerified(user.isEmailVerified())
                 .message(message)

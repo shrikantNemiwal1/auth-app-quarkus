@@ -26,7 +26,6 @@ public class AuthResource {
     @Path("/login")
     public Response login(@Valid LoginRequest request) {
         try {
-            // Method name changed from 'login' to 'authenticate'
             LoginResponse result = authService.authenticate(request.getEmail(), request.getPassword());
             return Response.ok(result).build();
         } catch (AuthenticationException e) {

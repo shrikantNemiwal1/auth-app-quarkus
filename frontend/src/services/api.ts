@@ -1,4 +1,3 @@
-// src/services/api.ts
 const BASE_URL = "/api";
 
 async function apiCall(url: string, options: RequestInit = {}) {
@@ -14,7 +13,6 @@ async function apiCall(url: string, options: RequestInit = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok || data.success === false) {
-    // ❌ Don't redirect here
     throw new Error(data.message || `Request failed with ${response.status}`);
   }
 

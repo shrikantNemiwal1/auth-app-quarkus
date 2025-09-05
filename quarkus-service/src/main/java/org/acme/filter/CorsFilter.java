@@ -1,7 +1,5 @@
 package org.acme.filter;
 
-import org.jboss.logging.Logger;
-
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -13,8 +11,6 @@ import java.io.IOException;
 @Provider
 @Priority(Priorities.HEADER_DECORATOR)
 public class CorsFilter implements ContainerResponseFilter {
-
-    private static final Logger log = Logger.getLogger(CorsFilter.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext,
