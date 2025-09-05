@@ -18,14 +18,6 @@ This project implements a secure user signup and login portal as per the followi
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[React Frontend (Nginx)] -- /api/* --> B[Node.js Proxy]
-    B -- REST API --> C[Quarkus Backend]
-    C -- JDBC --> D[(PostgreSQL DB)]
-    B -- Session (HTTP-only cookie) --> User
-```
-
 - **Frontend**: React app (TypeScript, Vite, Tailwind), served via Nginx. Handles all user UI.
 - **Node.js Proxy**: Express server. Manages user sessions (15-min inactivity timeout, cross-tab), proxies API calls to backend, isolates frontend from backend.
 - **Quarkus Backend**: Java Quarkus REST API. Handles user registration, login, email verification, password hashing, and business logic.
@@ -76,7 +68,7 @@ flowchart TD
 1. **Clone the repository:**
 
    ```sh
-   git clone <repo-url>
+   git clone https://github.com/shrikantNemiwal1/auth-app-quarkus.git
    cd auth-app-quarkus
    ```
 
@@ -134,7 +126,3 @@ flowchart TD
 - `/docker-compose.yml` - Orchestration for all services
 
 ---
-
-## License
-
-MIT (or specify your license)
